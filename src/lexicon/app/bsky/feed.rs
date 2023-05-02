@@ -5,22 +5,8 @@ use super::{embed::{Image, External}, actor::ProfileView};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ImagesEmbed {
-    #[serde(rename(deserialize = "$type", serialize = "$type"))]
-    pub rust_type: String,
     pub images: Vec<Image>,
 }
-
-///This and Embeds exist because one of the embeds does not have a $type field,
-/// which is cursed. CURSED
-#[derive(Debug, Deserialize, Serialize)]
-#[serde(untagged)]
-pub enum EmbedsContainer{
-    TaggedEmbeds(Embeds),
-    UntaggedEmbeds{
-        cid: String
-    },
-}
-
 
 // "app.bsky.embed.images",
 // "app.bsky.embed.external",
@@ -59,6 +45,8 @@ pub struct Post {
     pub text: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub embed: Option<Embeds>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reply: Option<ReplyRef>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -143,4 +131,38 @@ pub struct GetLikesOutput {
     pub cid: Option<String>,
     pub likes: Vec<GetLikesLike>,
     pub cursor: Option<String>
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ThreadViewPost{
+    pub post: PostView
+}
+
+#[derive(Debug, Deserialize)]
+pub struct NotFoundPost{
+    pub uri: String,
+    #[serde(rename(deserialize = "notFound"))]
+    pub not_found: bool,
+}
+
+
+#[derive(Debug, Deserialize)]
+#[serde(tag="$type")]
+pub enum ThreadViewPostEnum{
+    #[serde(rename(deserialize = "app.bsky.feed.defs#threadViewPost"))]
+    ThreadViewPost(ThreadViewPost),
+    #[serde(rename(deserialize = "app.bsky.feed.defs#notFoundPost"))]
+    NotFoundPost(NotFoundPost),
+}
+
+///api.bsky.feed.getPostThread
+#[derive(Debug, Serialize)]
+pub struct GetPostThread {
+    pub uri: String,
+    pub depth: Option<usize>,
+}
+#[derive(Debug, Deserialize)]
+pub struct GetPostThreadOutput {
+    pub thread: ThreadViewPostEnum,
+   
 }
