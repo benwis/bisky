@@ -57,6 +57,7 @@ pub struct Post {
     #[serde(rename(deserialize = "$type", serialize = "$type"))]
     pub rust_type: Option<String>,
     pub text: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub embed: Option<Embeds>,
 }
 
@@ -143,5 +144,3 @@ pub struct GetLikesOutput {
     pub likes: Vec<GetLikesLike>,
     pub cursor: Option<String>
 }
-
-
