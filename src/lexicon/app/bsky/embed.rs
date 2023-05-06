@@ -23,7 +23,7 @@ pub struct ExternalObject {
     pub uri: String,
     pub title: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumb: Option<BlobOutput>,
+    pub thumb: Option<Blob>,
     pub description: String,
     #[serde(rename(deserialize = "maxSize", serialize = "maxSize"))]
     pub max_size: Option<usize>,
