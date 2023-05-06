@@ -47,6 +47,7 @@ pub struct Link {
 pub struct Blob {
     #[serde(rename(deserialize = "$type", serialize = "$type"))]
     pub rust_type: String,
+    #[serde(with = "serde_bytes")]
     pub r#ref: Vec<u8>,
     #[serde(rename(deserialize = "mimeType", serialize = "mimeType"))]
     pub mime_type: String,

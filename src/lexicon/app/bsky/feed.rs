@@ -4,7 +4,6 @@ use super::{
 };
 use crate::lexicon::com::atproto::repo::StrongRef;
 use chrono::{DateTime, Utc};
-use ciborium::value::Value;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -12,17 +11,6 @@ pub struct ImagesEmbed {
     pub images: Vec<Image>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-#[serde(untagged)]
-pub enum EmbedsContainer{
-    Tagged(Embeds),
-    Untagged,
-}
-
-// "app.bsky.embed.images",
-// "app.bsky.embed.external",
-// "app.bsky.embed.record",
-// "app.bsky.embed.recordWithMedia"
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "$type")]
 pub enum Embeds {
@@ -44,19 +32,6 @@ pub enum Embeds {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Post {
-    #[serde(rename(deserialize = "createdAt", serialize = "createdAt"))]
-    pub created_at: DateTime<Utc>,
-    #[serde(rename(deserialize = "$type", serialize = "$type"))]
-    pub rust_type: Option<String>,
-    pub text: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub embed: Option<Embeds>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reply: Option<ReplyRef>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct TestPost {
     #[serde(rename(deserialize = "createdAt", serialize = "createdAt"))]
     pub created_at: DateTime<Utc>,
     #[serde(rename(deserialize = "$type", serialize = "$type"))]

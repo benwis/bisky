@@ -1,4 +1,4 @@
-use crate::lexicon::com::atproto::repo::{Blob, StrongRef, BlobOutput};
+use crate::lexicon::com::atproto::repo::{Blob, BlobOutput, StrongRef};
 use serde::{Deserialize, Serialize};
 
 use super::feed::ImagesEmbed;
@@ -38,7 +38,7 @@ pub struct External {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Record {
-    pub record: StrongRef
+    pub record: StrongRef,
 }
 
 /// app.bsky.embed.recordWithMedia

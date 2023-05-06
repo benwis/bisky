@@ -30,11 +30,7 @@ async fn main() {
                     let car_blocks = bisky::firehose::car::read_blocks(&mut car_reader).unwrap();
 
                     let record_reader = Cursor::new(car_blocks.get(&cid).unwrap());
-                    // let post = ciborium::de::from_reader::<TestPost, _>(record_reader);
-                    // let post = serde_cbor::from_reader::<Post, _>(record_reader);
-                    // let post = cbor4ii::serde::from_reader::<Post, _>(record_reader);
-                    // use cbor4ii::;
-                    let post = cbor4ii::serde::from_reader::<Post, _>(record_reader);
+                    let post = serde_cbor::from_reader::<Post, _>(record_reader);
                     println!("{post:?}");
                 }
             }
