@@ -7,6 +7,8 @@ use crate::lexicon::app::bsky::notification::{
 };
 use crate::lexicon::com::atproto::repo::{BlobOutput, CreateRecordOutput, Record};
 use chrono::Utc;
+
+#[derive(Clone)]
 pub struct Bluesky {
     client: Client,
 }
@@ -103,6 +105,14 @@ impl BlueskyUser<'_> {
             .xrpc_get(
                 "app.bsky.actor.getProfile",
                 Some(&[("actor", &self.username)]),
+            )
+            .await
+    }
+    pub async fn resolve_handle(&mut self, handle: &str) -> Result<ProfileViewDetailed, BiskyError> {
+        self.client
+            .xrpc_get(
+                "app.bsky.identity.resolveHandle",
+                Some(&[("handle", handle)]),
             )
             .await
     }

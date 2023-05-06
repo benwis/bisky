@@ -41,15 +41,16 @@ pub struct Post {
     pub embed: Option<Embeds>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reply: Option<ReplyRef>,
+    pub record: Option<StrongRef>
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ProfileViewBasic {
     pub did: String,
     pub handle: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct PostView {
     pub uri: String,
     pub cid: String,
