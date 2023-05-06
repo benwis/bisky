@@ -1,4 +1,5 @@
 use bisky::firehose::cbor::Body as FirehoseBody;
+use bisky::firehose::models::FirehosePost;
 use bisky::lexicon::app::bsky::feed::{Post};
 use futures::{SinkExt as _, StreamExt as _};
 use std::io::Cursor;
@@ -30,7 +31,7 @@ async fn main() {
                     let car_blocks = bisky::firehose::car::read_blocks(&mut car_reader).unwrap();
 
                     let record_reader = Cursor::new(car_blocks.get(&cid).unwrap());
-                    let post = serde_cbor::from_reader::<Post, _>(record_reader);
+                    let post = serde_cbor::from_reader::<FirehosePost, _>(record_reader);
                     println!("{post:?}");
                 }
             }
