@@ -1,5 +1,5 @@
 use bisky::firehose::cbor::Body as FirehoseBody;
-use bisky::lexicon::app::bsky::feed::{Post, TestPost};
+use bisky::lexicon::app::bsky::feed::{Post};
 use futures::{SinkExt as _, StreamExt as _};
 use std::io::Cursor;
 use tokio_tungstenite::tungstenite::protocol::Message;
