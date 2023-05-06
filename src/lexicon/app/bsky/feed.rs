@@ -1,14 +1,22 @@
 use super::{
     actor::ProfileView,
-    embed::{External, Image},
+    embed::{External, Image, Record, RecordWithMedia},
 };
 use crate::lexicon::com::atproto::repo::StrongRef;
 use chrono::{DateTime, Utc};
+use ciborium::value::Value;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ImagesEmbed {
     pub images: Vec<Image>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(untagged)]
+pub enum EmbedsContainer{
+    Tagged(Embeds),
+    Untagged,
 }
 
 // "app.bsky.embed.images",
@@ -29,23 +37,26 @@ pub enum Embeds {
     ))]
     External(External),
     #[serde(rename(deserialize = "app.bsky.embed.record"))]
-    TodoRecord,
+    Record(Record),
     #[serde(rename(deserialize = "app.bsky.embed.recordWithMedia"))]
-    TodoRecordWithMedia,
-    // Record(Record),
-    // #[serde(alias = "app.bsky.embed.recordWithMedia")]
-    // RecordWithMedia(RecordWithMedia),
-
-    // "embed": {
-    //     "$type": "app.bsky.embed.images",
-    //     "images": [
-    //         { "image": uploadresp.json()["blob"], "alt": "Alternative text" }
-    //     ]
-    // }
+    RecordWithMedia(RecordWithMedia),
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Post {
+    #[serde(rename(deserialize = "createdAt", serialize = "createdAt"))]
+    pub created_at: DateTime<Utc>,
+    #[serde(rename(deserialize = "$type", serialize = "$type"))]
+    pub rust_type: Option<String>,
+    pub text: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub embed: Option<Embeds>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reply: Option<ReplyRef>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct TestPost {
     #[serde(rename(deserialize = "createdAt", serialize = "createdAt"))]
     pub created_at: DateTime<Utc>,
     #[serde(rename(deserialize = "$type", serialize = "$type"))]

@@ -1,16 +1,7 @@
-use crate::lexicon::com::atproto::repo::Blob;
+use crate::lexicon::com::atproto::repo::{Blob, StrongRef, BlobOutput};
 use serde::{Deserialize, Serialize};
 
-// "app.bsky.embed.images#view",
-// "app.bsky.embed.external#view",
-// "app.bsky.embed.record#view",
-// "app.bsky.embed.recordWithMedia#view"
-
-///app.bsky.embed.images
-// #[derive(Debug, Deserialize, Serialize)]
-// pub struct Images {
-//     pub images: Vec<Image>,
-// }
+use super::feed::ImagesEmbed;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Image {
@@ -31,6 +22,8 @@ pub struct ViewImage {
 pub struct ExternalObject {
     pub uri: String,
     pub title: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub thumb: Option<BlobOutput>,
     pub description: String,
     #[serde(rename(deserialize = "maxSize", serialize = "maxSize"))]
     pub max_size: Option<usize>,
@@ -40,4 +33,28 @@ pub struct ExternalObject {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct External {
     pub external: ExternalObject,
+}
+/// app.bsky.embed.record
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct Record {
+    pub record: StrongRef
+}
+
+/// app.bsky.embed.recordWithMedia
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct RecordWithMedia {
+    pub media: MainMediaEnum,
+    pub record: Record,
+}
+
+#[allow(clippy::large_enum_variant)]
+#[derive(serde::Serialize, serde::Deserialize, Debug)]
+#[serde(tag = "$type")]
+pub enum MainMediaEnum {
+    #[serde(rename = "app.bsky.embed.images")]
+    AppBskyEmbedImagesMain(ImagesEmbed),
+    #[serde(rename = "app.bsky.embed.external")]
+    AppBskyEmbedExternalMain(External),
 }

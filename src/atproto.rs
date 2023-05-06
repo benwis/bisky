@@ -61,9 +61,9 @@ pub trait StorableSession: Storage<UserSession, Error = BiskyError> {}
 #[derive(Clone, Builder)]
 pub struct Client {
     #[builder(default = r#"reqwest::Url::parse("https://bsky.social").unwrap()"#)]
-    service: reqwest::Url,
+    pub service: reqwest::Url,
     #[builder(default, setter(strip_option))]
-    storage: Option<Arc<dyn StorableSession>>,
+    pub storage: Option<Arc<dyn StorableSession>>,
     #[builder(default, setter(custom))]
     pub session: Option<UserSession>,
 }
@@ -213,11 +213,11 @@ impl Client {
                 return Err(BiskyError::ApiError(error));
             }
         }
-        // let text: String = response.error_for_status()?.text().await?;
-        // println!("Text\n\n{:#?}\n\n", text);
-        // let json = serde_json::from_str(&text)?;
+        let text: String = response.error_for_status()?.text().await?;
+        println!("Text\n\n{:#?}\n\n", text);
+        let json = serde_json::from_str(&text)?;
 
-        let json: D = response.error_for_status()?.json().await?;
+        // let json: D = response.error_for_status()?.json().await?;
         // println!("Response\n\n{:#?}\n\n", json);
         Ok(json)
     }
