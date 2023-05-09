@@ -55,6 +55,7 @@ async fn main() {
                 text: args.post_text,
                 created_at: chrono::Utc::now(),
                 embed: Some(embed),
+                reply: None,
             })
             .await
             .unwrap()

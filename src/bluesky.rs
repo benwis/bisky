@@ -7,8 +7,10 @@ use crate::lexicon::app::bsky::notification::{
 };
 use crate::lexicon::com::atproto::repo::{BlobOutput, CreateRecordOutput, Record};
 use chrono::Utc;
+use serde::de::DeserializeOwned;
+use serde::Serialize;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Bluesky {
     client: Client,
 }
@@ -48,8 +50,22 @@ impl<'a> BlueskyMe<'a> {
     /// Post a new Post to your skyline
     pub async fn post(&mut self, post: Post) -> Result<CreateRecordOutput, BiskyError> {
         self.client
-            .repo_create_record(&self.username, "app.bsky.feed.post", &post)
+            .repo_create_record(&self.username, "app.bsky.feed.post", None, None, None, &post)
             .await
+    }
+    /// Create a new Record to your PDS
+    pub async fn create_record<S>(&mut self, collection: &str, rkey: Option<&str>, validate: Option<bool>, swap_commit: Option<&str>, record: S) -> Result<CreateRecordOutput, BiskyError>   
+        where S: Serialize{
+        self.client
+            .repo_create_record(&self.username, collection, rkey, validate, swap_commit, &record)
+            .await
+    }
+    /// Create a new Record to your PDS
+    pub async fn put_record<S>(&mut self,collection: &str, rkey: &str, validate: Option<bool>, swap_commit:Option<&str>, swap_record:Option<&str>,  record: S) -> Result<CreateRecordOutput, BiskyError>   
+    where S: Serialize{
+    self.client
+        .repo_put_record(&self.username, collection, rkey, swap_record, swap_commit, validate, &record)
+        .await
     }
     /// Get the notifications for the user
     ///app.bsky.notification.listNotifications#
@@ -93,6 +109,12 @@ impl<'a> BlueskyMe<'a> {
     pub async fn get_post_thread(&mut self, uri: &str) -> Result<ThreadViewPostEnum, BiskyError> {
         self.client.bsky_get_post_thread(uri).await
     }
+
+    pub async fn delete_record(&mut self, collection: &str, rkey: &str, swap_commit: Option<&str>, swap_record: Option<&str>) -> Result<(), BiskyError> 
+    {
+    self.client.repo_delete_record(&self.username, collection, rkey, swap_commit, swap_record).await
+}
+
 }
 pub struct BlueskyUser<'a> {
     client: &'a mut Client,
@@ -108,14 +130,19 @@ impl BlueskyUser<'_> {
             )
             .await
     }
-    pub async fn resolve_handle(&mut self, handle: &str) -> Result<ProfileViewDetailed, BiskyError> {
+    pub async fn get_profile_other(&mut self, other: &str) -> Result<ProfileViewDetailed, BiskyError> {
         self.client
             .xrpc_get(
-                "app.bsky.identity.resolveHandle",
-                Some(&[("handle", handle)]),
+                "app.bsky.actor.getProfile",
+                Some(&[("actor", other)]),
             )
             .await
     }
+    
+    pub async fn resolve_handle(&mut self, handle: &str) -> Result<String, BiskyError> {
+       self.client.repo_resolve_handle::<String>(handle).await
+    }
+
     pub async fn get_likes(
         &mut self,
         uri: &str,
@@ -147,20 +174,30 @@ impl BlueskyUser<'_> {
             .await
             .map(|l| l.0)
     }
-    // pub async fn get_record(&mut self, repo: &str, collection: &str, rkey: &str) -> Result<ProfileViewDetailed, BiskyError> {
-    //     self.client
-    //         .xrpc_get(
-    //             "com.atproto.repo.getRecord",
-    //             Some(&[("actor", &self.username)]),
-    //         )
-    //         .await
-    // }
+
+    pub async fn get_record<D>(&mut self, repo: &str, collection: &str, rkey: &str) -> Result<Record<D>, BiskyError> 
+        where D: DeserializeOwned + std::fmt::Debug{
+        self.client.repo_get_record(repo, collection, rkey).await
+    }
 
     pub async fn list_posts(&mut self) -> Result<Vec<Record<Post>>, BiskyError> {
         self.client
             .repo_list_records(
                 &self.username,
                 "app.bsky.feed.post",
+                usize::MAX,
+                false,
+                None,
+            )
+            .await
+            .map(|l| l.0)
+    }
+    pub async fn list_records<T>(&mut self, collection: &str, repo: &str) -> Result<Vec<Record<T>>, BiskyError>
+    where T: DeserializeOwned + std::fmt::Debug{
+        self.client
+            .repo_list_records(
+                repo,
+                collection,
                 usize::MAX,
                 false,
                 None,

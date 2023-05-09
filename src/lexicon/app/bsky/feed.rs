@@ -104,6 +104,7 @@ pub struct Repost {
     #[serde(rename(serialize = "createdAt"))]
     pub created_at: DateTime<Utc>,
     pub subject: StrongRef,
+    pub rkey: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

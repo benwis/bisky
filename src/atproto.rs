@@ -7,7 +7,8 @@ use crate::lexicon::app::bsky::graph::{GetFollowersOutput, GetFollowsOutput};
 use crate::lexicon::app::bsky::notification::{
     ListNotificationsOutput, Notification, NotificationCount, UpdateSeen,
 };
-use crate::lexicon::com::atproto::repo::{CreateRecord, ListRecordsOutput, Record};
+use crate::lexicon::com::atproto::identity::ResolveHandleOutput;
+use crate::lexicon::com::atproto::repo::{CreateRecord, ListRecordsOutput, Record, PutRecord, DeleteRecord};
 use crate::lexicon::com::atproto::server::{CreateUserSession, RefreshUserSession};
 use crate::storage::Storage;
 use chrono::{DateTime, Utc};
@@ -56,7 +57,7 @@ impl From<RefreshUserSession> for UserSession {
         }
     }
 }
-pub trait StorableSession: Storage<UserSession, Error = BiskyError> {}
+pub trait StorableSession: Storage<UserSession, Error = BiskyError> + Send + Sync {}
 
 #[derive(Clone, Builder)]
 pub struct Client {
@@ -66,6 +67,15 @@ pub struct Client {
     pub storage: Option<Arc<dyn StorableSession>>,
     #[builder(default, setter(custom))]
     pub session: Option<UserSession>,
+}
+
+impl Default for Client{
+    fn default() -> Self {
+        Self { 
+            service: reqwest::Url::parse("https://bsky.social").unwrap(), 
+            storage: Default::default(), 
+            session: Default::default() }
+    }
 }
 
 impl ClientBuilder {
@@ -433,21 +443,73 @@ impl<'a, D: DeserializeOwned + std::fmt::Debug> NotificationStream<'a, D> {
     }
 }
 impl Client {
-    // pub async fn repo_get_record<D: DeserializeOwned + std::fmt::Debug>(
-    //     &mut self,
-    //     repo: &str,
-    //     collection: &str,
-    //     rkey: Option<&str>,
-    // ) -> Result<Record<D>, BiskyError> {
-    //     let mut query = vec![("repo", repo), ("collection", collection)];
+    /// Resolve a Handle into a DID
+    pub async fn repo_resolve_handle<D: DeserializeOwned>(&mut self, handle: &str) -> Result<String, BiskyError>{
+        let query = vec![("handle", handle)];
 
-    //     if let Some(rkey) = rkey {
-    //         query.push(("rkey", rkey));
-    //     }
+        let resolve_output: ResolveHandleOutput = self.xrpc_get("com.atproto.identity.resolveHandle", Some(&query)).await?;
+        Ok(resolve_output.did)
 
-    //     self.xrpc_get("com.atproto.repo.getRecord", Some(&query))
-    //         .await
-    // }
+    }
+    pub async fn repo_get_record<D: DeserializeOwned + std::fmt::Debug>(
+        &mut self,
+        repo: &str,
+        collection: &str,
+        rkey: &str,
+    ) -> Result<Record<D>, BiskyError> {
+        let query = vec![("repo", repo), ("collection", collection), ("rkey", rkey)];
+
+        self.xrpc_get("com.atproto.repo.getRecord", Some(&query))
+            .await
+    }
+    #[allow(clippy::too_many_arguments)]
+    pub async fn repo_put_record<D: DeserializeOwned, S: Serialize>(
+        &mut self,
+        repo: &str,
+        collection: &str,
+        rkey: &str,
+        swap_record: Option<&str>,
+        swap_commit: Option<&str>,
+        validate: Option<bool>,
+        record: S
+    ) -> Result<D, BiskyError> {
+    
+        self.xrpc_post(
+            "com.atproto.repo.putRecord",
+            &PutRecord {
+                repo,
+                collection,
+                record,
+                rkey,
+                validate,
+                swap_commit,
+                swap_record,
+            },
+        )
+        .await
+
+    }
+
+    pub async fn repo_delete_record(
+        &mut self,
+        repo: &str,
+        collection: &str,
+        rkey: &str,
+        swap_record: Option<&str>,
+        swap_commit: Option<&str>,
+    ) -> Result<(), BiskyError> {
+
+        let body = DeleteRecord {
+            repo,
+            collection,
+            rkey,
+            swap_record,
+            swap_commit,
+        };
+
+        self.xrpc_post_no_response("com.atproto.repo.deleteRecord", &body)
+            .await
+    }
 
     pub async fn repo_list_records<D: DeserializeOwned + std::fmt::Debug>(
         &mut self,
@@ -496,6 +558,9 @@ impl Client {
         &mut self,
         repo: &str,
         collection: &str,
+        rkey: Option<&str>,
+        validate: Option<bool>,
+        swap_commit: Option<&str>,
         record: S,
     ) -> Result<D, BiskyError> {
         self.xrpc_post(
@@ -504,6 +569,9 @@ impl Client {
                 repo,
                 collection,
                 record,
+                rkey,
+                validate,
+                swap_commit,
             },
         )
         .await

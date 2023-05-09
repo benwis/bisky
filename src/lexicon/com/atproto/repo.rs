@@ -24,6 +24,45 @@ pub struct CreateRecord<'a, T> {
     pub repo: &'a str,
     pub collection: &'a str,
     pub record: T,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rkey: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub validate: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename(serialize = "swapCommit"))]
+    pub swap_commit: Option<&'a str>
+
+}
+
+#[derive(Serialize)]
+pub struct PutRecord<'a, T> {
+    pub repo: &'a str,
+    pub collection: &'a str,
+    pub record: T,
+    pub rkey: &'a str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub validate: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename(serialize = "swapRecord"))]
+    pub swap_record: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename(serialize = "swapCommit"))]
+    pub swap_commit: Option<&'a str>
+
+}
+
+#[derive(Serialize)]
+pub struct DeleteRecord<'a> {
+    pub repo: &'a str,
+    pub collection: &'a str,
+    pub rkey: &'a str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename(serialize = "swapRecord"))]
+    pub swap_record: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename(serialize = "swapCommit"))]
+    pub swap_commit: Option<&'a str>
+
 }
 
 #[derive(Debug, Deserialize)]
