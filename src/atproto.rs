@@ -208,7 +208,6 @@ impl Client {
             if let Some(query) = query {
                 request = request.query(query);
             }
-
             Ok(request)
         }
 
@@ -228,7 +227,6 @@ impl Client {
         let json = serde_json::from_str(&text)?;
 
         // let json: D = response.error_for_status()?.json().await?;
-        // println!("Response\n\n{:#?}\n\n", json);
         Ok(json)
     }
 
@@ -244,7 +242,6 @@ impl Client {
             path: &str,
             body: &str,
         ) -> Result<reqwest::RequestBuilder, BiskyError> {
-            println!("BODY: {:#?}", body);
 
             let req = reqwest::Client::new()
                 .post(self_.get_service().join(&format!("xrpc/{path}")).unwrap())
@@ -252,7 +249,6 @@ impl Client {
                 .header("authorization", format!("Bearer {}", self_.access_token()?))
                 .body(body.to_string());
 
-            println!("REQ: {:#?}", req);
             Ok(req)
         }
 
@@ -458,7 +454,6 @@ impl Client {
         rkey: &str,
     ) -> Result<Record<D>, BiskyError> {
         let query = vec![("repo", repo), ("collection", collection), ("rkey", rkey)];
-
         self.xrpc_get("com.atproto.repo.getRecord", Some(&query))
             .await
     }

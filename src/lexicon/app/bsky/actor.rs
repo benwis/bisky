@@ -1,6 +1,8 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::lexicon::com::atproto::repo::Blob;
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Label {
     pub src: String,
@@ -50,4 +52,15 @@ pub struct ProfileViewDetailed {
     pub posts_count: Option<usize>,
     pub labels: Vec<Label>,
     pub indexed_at: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ProfileRecord {
+    #[serde(rename(deserialize = "$type", serialize = "$type"))]
+    pub rust_type: Option<String>,
+    pub avatar: Option<Blob>,
+    pub banner: Option<Blob>,
+    pub description: Option<String>,
+    #[serde(rename(deserialize = "displayName", serialize = "displayName"))]
+    pub display_name: Option<String>,
 }
