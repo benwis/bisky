@@ -91,3 +91,14 @@ pub enum FirehoseMainMediaEnum {
     #[serde(rename = "app.bsky.embed.external")]
     AppBskyEmbedExternalMain(FirehoseExternal),
 }
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct FirehoseProfileRecord {
+    #[serde(rename(deserialize = "$type", serialize = "$type"))]
+    pub rust_type: Option<String>,
+    pub avatar: Option<FirehoseBlob>,
+    pub banner: Option<FirehoseBlob>,
+    pub description: Option<String>,
+    #[serde(rename(deserialize = "displayName", serialize = "displayName"))]
+    pub display_name: Option<String>,
+}
