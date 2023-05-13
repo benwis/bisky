@@ -138,7 +138,7 @@ impl BlueskyUser<'_> {
             )
             .await
     }
-    
+
     pub async fn resolve_handle(&mut self, handle: &str) -> Result<String, BiskyError> {
        self.client.repo_resolve_handle::<String>(handle).await
     }
@@ -206,9 +206,15 @@ impl BlueskyUser<'_> {
             .map(|l| l.0)
     }
 
-    pub async fn stream_posts(&mut self) -> Result<RecordStream<Post>, StreamError> {
+    pub async fn stream_posts(&mut self,limit: usize, reverse: bool) -> Result<RecordStream<Post>, StreamError> {
         self.client
-            .repo_stream_records(&self.username, "app.bsky.feed.post")
+            .repo_stream_records(&self.username, "app.bsky.feed.post", limit, reverse)
+            .await
+    }
+    pub async fn stream_records<'a, T>(&'a mut self, repo: &'a str, collection: &'a str, limit: usize, reverse: bool) -> Result<RecordStream<'a, T>, StreamError> 
+    where T: std::fmt::Debug + DeserializeOwned{
+        self.client
+            .repo_stream_records(repo, collection, limit, reverse)
             .await
     }
 }

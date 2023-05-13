@@ -585,9 +585,11 @@ impl Client {
         &'a mut self,
         repo: &'a str,
         collection: &'a str,
+        limit: usize,
+        reverse: bool,
     ) -> Result<RecordStream<'a, D>, StreamError> {
         let (_, cursor) = self
-            .repo_list_records::<D>(repo, collection, 1, false, None)
+            .repo_list_records::<D>(repo, collection, limit, reverse, None)
             .await?;
 
         if let Some(cursor) = cursor {
