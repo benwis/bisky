@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize};
 use chrono::{DateTime, Utc};
 
-use crate::lexicon::app::bsky::{feed::{ImagesEmbed, ReplyRef}, embed::{Record, RecordWithMedia}};
+use crate::lexicon::app::bsky::{feed::{ReplyRef}, embed::{Record}};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct FirehosePost {

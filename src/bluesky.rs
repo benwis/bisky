@@ -1,3 +1,5 @@
+use std::ops::RangeFull;
+
 use crate::atproto::{Client, NotificationStream, RecordStream, StreamError};
 use crate::errors::BiskyError;
 use crate::lexicon::app::bsky::actor::{ProfileView, ProfileViewDetailed};
@@ -60,7 +62,7 @@ impl<'a> BlueskyMe<'a> {
             .repo_create_record(&self.username, collection, rkey, validate, swap_commit, &record)
             .await
     }
-    /// Create a new Record to your PDS
+    /// Put Record to your PDS
     pub async fn put_record<S>(&mut self,collection: &str, rkey: &str, validate: Option<bool>, swap_commit:Option<&str>, swap_record:Option<&str>,  record: S) -> Result<CreateRecordOutput, BiskyError>   
     where S: Serialize{
     self.client
@@ -204,6 +206,35 @@ impl BlueskyUser<'_> {
             )
             .await
             .map(|l| l.0)
+    }
+
+    /// Gets all the records in a partcular collection and repo. If reverse is true, it'll return the oldest first, if false it'll return the oldest last
+    pub async fn list_all_records<T>(&mut self, collection: &str, repo: &str, reverse: bool) -> Result<Vec<Record<T>>, BiskyError>
+    where T: DeserializeOwned + std::fmt::Debug{
+        let mut output = Vec::new();
+        let mut cursor_ref = None;
+        loop {
+        let (mut records, cursor) = self.client
+            .repo_list_records::<T>(
+                repo,
+                collection,
+                usize::MAX,
+                reverse,
+                cursor_ref.clone(),
+            )
+            .await?;
+        records.drain(RangeFull).for_each(|r| output.push(r));
+        
+        if let Some(cursor) = cursor{
+            cursor_ref = Some(cursor);
+        } else{
+            break
+        }
+        if records.is_empty(){
+            break
+        }
+    }
+    Ok(output)
     }
 
     pub async fn stream_posts(&mut self,limit: usize, reverse: bool) -> Result<RecordStream<Post>, StreamError> {

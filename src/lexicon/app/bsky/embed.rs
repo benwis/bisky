@@ -1,4 +1,4 @@
-use crate::lexicon::com::atproto::repo::{Blob, BlobOutput, StrongRef};
+use crate::lexicon::com::atproto::repo::{Blob, StrongRef};
 use serde::{Deserialize, Serialize};
 
 use super::feed::ImagesEmbed;

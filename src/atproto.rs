@@ -16,6 +16,7 @@ use derive_builder::Builder;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::json;
 use std::collections::VecDeque;
+use std::ops::RangeFull;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -223,7 +224,7 @@ impl Client {
             }
         }
         let text: String = response.error_for_status()?.text().await?;
-        println!("Text\n\n{:#?}\n\n", text);
+        // println!("Text\n\n{:#?}\n\n", text);
         let json = serde_json::from_str(&text)?;
 
         // let json: D = response.error_for_status()?.json().await?;
@@ -264,7 +265,7 @@ impl Client {
             }
         }
         let text: String = response.error_for_status()?.text().await?;
-        println!("Text\n\n{:#?}\n\n", text);
+        //println!("Text\n\n{:#?}\n\n", text);
         let json = serde_json::from_str(&text)?;
         // let json = response.error_for_status()?.json::<D2>().await?;
 
@@ -302,7 +303,7 @@ impl Client {
             }
         }
         let text: String = response.error_for_status()?.text().await?;
-        println!("Text\n\n{:#?}\n\n", text);
+        // println!("Text\n\n{:#?}\n\n", text);
         let json = serde_json::from_str(&text)?;
         // let json = response.error_for_status()?.json::<D2>().await?;
 
@@ -588,16 +589,19 @@ impl Client {
         limit: usize,
         reverse: bool,
     ) -> Result<RecordStream<'a, D>, StreamError> {
-        let (_, cursor) = self
+        let (mut records, cursor) = self
             .repo_list_records::<D>(repo, collection, limit, reverse, None)
             .await?;
+        // Need to add the first set of records to the VecDeque
+        let mut queue = VecDeque::new();
+        records.drain(RangeFull).for_each(|r| queue.push_back(r));
 
         if let Some(cursor) = cursor {
             Ok(RecordStream {
                 client: self,
                 repo,
                 collection,
-                queue: VecDeque::new(),
+                queue,
                 cursor,
             })
         } else {
